@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "app_expo",
-    "slug": "app_expo",
+    "name": "creative_convergence",
+    "slug": "creative_convergence",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "appexpo",
+    "scheme": "creativeconvergence",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
