@@ -1,6 +1,6 @@
-# Python
-__pycache__/
-*.pyc
+def main():
+    print("main 실행됨")
 
-# Virtual environment
-venv/
+
+if __name__ == "__main__":
+    main()
