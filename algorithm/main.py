@@ -1,5 +1,6 @@
-def main():
-    print("algorithm module 실행 확인")
+# Python
+__pycache__/
+*.pyc
 
-if __name__ == "__main__":
-    main()
+# Virtual environment
+venv/
