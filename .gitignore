@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+<<<<<<< HEAD
 *.pyc
 
 # Virtual Env
@@ -8,3 +9,6 @@ venv/
 
 # Mac
 .DS_Store
+=======
+*.pyc"
+>>>>>>> 8460ba4e4b70227d9caff5e5b82319157050f61b
