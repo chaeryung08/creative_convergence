@@ -1,27 +1,24 @@
+
+import cv2
 from algorithm.eye_detect import detect_eye_state
 
 def main():
-    print("프로그램 시작")
+    cap = cv2.VideoCapture(0)  # 카메라 캡처 시작
 
-    closed_count = 0
-    THRESHOLD = 3  # 눈 감긴 프레임 수 임계값
-
-    for i in range(5):  # 예시로 5프레임 처리
-        dummy_frame = None #나중에 카메라 프레임으로 교체
-        state = detect_eye_state(dummy_frame)
-
-        print(f"{i+1}번째 프레임 눈 상태:", state)
-
-        if state == "CLOSED":
-            closed_count += 1
-        else:
-            closed_count = 0
-
-        if closed_count >= THRESHOLD:
-            print("졸음 상태 감지")
+    while True:
+        ret, frame = cap.read()
+        if not ret:
             break
 
-    print("프로그램 종료")
+        state = detect_eye_state(frame)
+        print("눈 상태:", state)
+
+        cv2.imshow("frame", frame)
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
