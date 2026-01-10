@@ -46,6 +46,23 @@ class EventLogger:
         """알람 취소 로그"""
         return self.log('ALARM_CANCEL', {})
     
+    # 🆕 낮잠 타이머 관련 로그 메서드 추가
+    def log_nap_timer_start(self, duration: int) -> Dict:
+        """낮잠 타이머 시작 로그"""
+        return self.log('NAP_TIMER_START', {'duration_seconds': duration})
+    
+    def log_nap_timer_complete(self) -> Dict:
+        """낮잠 타이머 완료 로그"""
+        return self.log('NAP_TIMER_COMPLETE', {})
+    
+    def log_nap_timer_cancel(self) -> Dict:
+        """낮잠 타이머 취소 로그"""
+        return self.log('NAP_TIMER_CANCEL', {})
+    
+    def log_deep_sleep_detected(self) -> Dict:
+        """깊은 수면 감지 로그"""
+        return self.log('DEEP_SLEEP_DETECTED', {'reason': 'alarm_not_recognized_for_1min'})
+    
     def log_drowsiness_change(self, old_level: str, new_level: str, score: int) -> Dict:
         """졸음 상태 변경 로그"""
         return self.log('DROWSINESS_CHANGE', {
