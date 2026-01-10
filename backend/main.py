@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.drowsy import router
+from backend.api.drowsy import router
 
 app = FastAPI()
 
