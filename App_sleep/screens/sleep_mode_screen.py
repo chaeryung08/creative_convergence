@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from components.sleep_status_display import SleepStatusDisplay
 from components.timer_button import TimerButton
-from components.alarm_button import AlarmButton
+from App_sleep.components.nap_timer_button import AlarmButton
 from data.mock_data import (
     get_drowsiness_level, 
     fetch_drowsiness_status,
