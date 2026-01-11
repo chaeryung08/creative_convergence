@@ -13,7 +13,7 @@ import os
 # 🔥 이 부분을 수정
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 🆕 my_frontend 하위 구조에 맞게 수정
+
 from App_sleep.components.sleep_status_display import SleepStatusDisplay
 from App_sleep.components.timer_button import TimerButton
 from App_sleep.components.nap_timer_button import NapTimerButton
