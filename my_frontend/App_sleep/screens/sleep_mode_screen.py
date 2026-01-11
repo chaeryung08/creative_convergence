@@ -62,7 +62,7 @@ class SleepModeScreen(BoxLayout):
             font_size='12sp',
             color=(0.46, 0.46, 0.46, 1),
             halign='left',
-            valign='middle'
+            valign='middle',
             font_name='NanumGothic'
         )
         mode_label.bind(size=mode_label.setter('text_size'))
@@ -73,7 +73,7 @@ class SleepModeScreen(BoxLayout):
         self.log_button = Button(
             text='로그 보기',
             size_hint_x=0.3,
-            background_color=(0.13, 0.59, 0.95, 1)
+            background_color=(0.13, 0.59, 0.95, 1),
             font_name='NanumGothic'
         )
         self.log_button.bind(on_press=self.toggle_logs)

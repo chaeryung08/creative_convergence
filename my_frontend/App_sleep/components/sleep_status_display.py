@@ -28,7 +28,7 @@ class SleepStatusDisplay(BoxLayout):
             text='😊',
             font_size='64sp',
             size_hint_y=None,
-            height=dp(80)
+            height=dp(80),
             font_name='NanumGothic'
         )
         
@@ -37,7 +37,7 @@ class SleepStatusDisplay(BoxLayout):
             font_size='16sp',
             color=(0.46, 0.46, 0.46, 1),
             size_hint_y=None,
-            height=dp(30)
+            height=dp(30),
             font_name='NanumGothic'
         )
         
@@ -46,7 +46,7 @@ class SleepStatusDisplay(BoxLayout):
             font_size='32sp',
             bold=True,
             size_hint_y=None,
-            height=dp(50)
+            height=dp(50),
             font_name='NanumGothic'
         )
         
@@ -61,7 +61,7 @@ class SleepStatusDisplay(BoxLayout):
             text='0%',
             font_size='20sp',
             size_hint_y=None,
-            height=dp(40)
+            height=dp(40),
             font_name='NanumGothic'
         )
         

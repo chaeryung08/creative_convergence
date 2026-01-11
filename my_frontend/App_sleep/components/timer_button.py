@@ -35,7 +35,7 @@ class TimerButton(BoxLayout):
             font_size='20sp',
             bold=True,
             size_hint_y=None,
-            height=dp(40)
+            height=dp(40),
             font_name='NanumGothic'
         )
         
@@ -44,7 +44,7 @@ class TimerButton(BoxLayout):
             font_size='56sp',
             bold=True,
             size_hint_y=None,
-            height=dp(80)
+            height=dp(80),
             font_name='NanumGothic'
         )
         
@@ -59,7 +59,7 @@ class TimerButton(BoxLayout):
         self.start_button = Button(
             text='시작',
             background_color=(0.3, 0.69, 0.31, 1),
-            size_hint_x=0.5
+            size_hint_x=0.5,
             font_name='NanumGothic'
         )
         self.start_button.bind(on_press=self.on_start)
@@ -67,7 +67,7 @@ class TimerButton(BoxLayout):
         self.reset_button = Button(
             text='리셋',
             background_color=(0.46, 0.46, 0.46, 1),
-            size_hint_x=0.5
+            size_hint_x=0.5,
             font_name='NanumGothic'
         )
         self.reset_button.bind(on_press=self.on_reset)
@@ -80,7 +80,7 @@ class TimerButton(BoxLayout):
             font_size='14sp',
             color=(0.46, 0.46, 0.46, 1),
             size_hint_y=None,
-            height=dp(30)
+            height=dp(30),
             font_name='NanumGothic'
         )
         

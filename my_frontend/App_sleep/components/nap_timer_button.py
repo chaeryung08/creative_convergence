@@ -48,7 +48,7 @@ class NapTimerButton(BoxLayout):
             font_size='20sp',
             bold=True,
             size_hint_y=None,
-            height=dp(40)
+            height=dp(40),
             font_name='NanumGothic'
         )
         
@@ -56,7 +56,7 @@ class NapTimerButton(BoxLayout):
             text='😴',
             font_size='48sp',
             size_hint_y=None,
-            height=dp(60)
+            height=dp(60),
             font_name='NanumGothic'
         )
         
@@ -66,7 +66,7 @@ class NapTimerButton(BoxLayout):
             values=('5분', '10분', '15분', '20분', '25분', '30분'),
             size_hint_y=None,
             height=dp(44),
-            background_color=(0.95, 0.95, 0.95, 1)
+            background_color=(0.95, 0.95, 0.95, 1),
             font_name='NanumGothic'
         )
         self.time_spinner.bind(text=self.on_spinner_select)
@@ -86,7 +86,7 @@ class NapTimerButton(BoxLayout):
             font_size='14sp',
             color=(0.13, 0.59, 0.95, 1),
             size_hint_y=None,
-            height=dp(30)
+            height=dp(30),
             font_name='NanumGothic'
         )
         
@@ -94,7 +94,7 @@ class NapTimerButton(BoxLayout):
             text='타이머 시작',
             background_color=(0.13, 0.59, 0.95, 1),
             size_hint_y=None,
-            height=dp(50)
+            height=dp(50),
             font_name='NanumGothic'
         )
         self.action_button.bind(on_press=self.toggle_timer)
