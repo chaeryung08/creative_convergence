@@ -1,9 +1,9 @@
 from kivy.app import App
-from kivy.uix.label import Label
+from my_frontend.App_sleep.screens.sleep_mode_screen import SleepModeScreen
 
-class TestApp(App):
+class SleepMonitorApp(App):
     def build(self):
-        return Label(text='Hello Kivy!', font_size='50sp')
+        return SleepModeScreen()
 
 if __name__ == '__main__':
-    TestApp().run()
+    SleepMonitorApp().run()
