@@ -9,17 +9,20 @@ import random
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from components.sleep_status_display import SleepStatusDisplay
-from components.timer_button import TimerButton
-from components.nap_timer_button import NapTimerButton  # 🆕 변경
-from data.mock_data import (
+# 🔥 이 부분을 수정
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# 🆕 my_frontend 하위 구조에 맞게 수정
+from my_frontend.App_sleep.components.sleep_status_display import SleepStatusDisplay
+from my_frontend.App_sleep.components.timer_button import TimerButton
+from my_frontend.App_sleep.components.nap_timer_button import NapTimerButton
+from my_frontend.App_sleep.data.mock_data import (
     get_drowsiness_level, 
     fetch_drowsiness_status,
     USE_MOCK_DATA
 )
-from utils.event_logger import event_logger
+from my_frontend.App_sleep.utils.event_logger import event_logger
 
 class SleepModeScreen(BoxLayout):
     """수면 모니터링 메인 화면"""
@@ -89,11 +92,11 @@ class SleepModeScreen(BoxLayout):
         # 컴포넌트들
         self.status_display = SleepStatusDisplay()
         self.timer_button = TimerButton(event_logger)
-        self.nap_timer_button = NapTimerButton(event_logger)  # 🆕 변경
+        self.nap_timer_button = NapTimerButton(event_logger)
         
         self.content_layout.add_widget(self.status_display)
         self.content_layout.add_widget(self.timer_button)
-        self.content_layout.add_widget(self.nap_timer_button)  # 🆕 변경
+        self.content_layout.add_widget(self.nap_timer_button)
         
         scroll_view.add_widget(self.content_layout)
         
