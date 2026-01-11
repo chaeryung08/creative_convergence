@@ -51,8 +51,8 @@ class SleepModeScreen(BoxLayout):
             font_size='24sp',
             bold=True,
             halign='left',
-            valign='middle'
-            color(0,0,0,1),
+            valign='middle',
+            color=(0,0,0,1),
             font_name='NanumGothic'
         )
         header_title.bind(size=header_title.setter('text_size'))
