@@ -36,6 +36,7 @@ class TimerButton(BoxLayout):
             bold=True,
             size_hint_y=None,
             height=dp(40)
+            font_name='NanumGothic'
         )
         
         self.timer_display = Label(
@@ -44,6 +45,7 @@ class TimerButton(BoxLayout):
             bold=True,
             size_hint_y=None,
             height=dp(80)
+            font_name='NanumGothic'
         )
         
         # 버튼 레이아웃
@@ -58,6 +60,7 @@ class TimerButton(BoxLayout):
             text='시작',
             background_color=(0.3, 0.69, 0.31, 1),
             size_hint_x=0.5
+            font_name='NanumGothic'
         )
         self.start_button.bind(on_press=self.on_start)
         
@@ -65,6 +68,7 @@ class TimerButton(BoxLayout):
             text='리셋',
             background_color=(0.46, 0.46, 0.46, 1),
             size_hint_x=0.5
+            font_name='NanumGothic'
         )
         self.reset_button.bind(on_press=self.on_reset)
         
@@ -77,6 +81,7 @@ class TimerButton(BoxLayout):
             color=(0.46, 0.46, 0.46, 1),
             size_hint_y=None,
             height=dp(30)
+            font_name='NanumGothic'
         )
         
         self.add_widget(self.title_label)

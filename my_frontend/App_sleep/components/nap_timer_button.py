@@ -49,6 +49,7 @@ class NapTimerButton(BoxLayout):
             bold=True,
             size_hint_y=None,
             height=dp(40)
+            font_name='NanumGothic'
         )
         
         self.emoji_label = Label(
@@ -56,6 +57,7 @@ class NapTimerButton(BoxLayout):
             font_size='48sp',
             size_hint_y=None,
             height=dp(60)
+            font_name='NanumGothic'
         )
         
         # 시간 선택 스피너
@@ -65,6 +67,7 @@ class NapTimerButton(BoxLayout):
             size_hint_y=None,
             height=dp(44),
             background_color=(0.95, 0.95, 0.95, 1)
+            font_name='NanumGothic'
         )
         self.time_spinner.bind(text=self.on_spinner_select)
         
@@ -73,7 +76,8 @@ class NapTimerButton(BoxLayout):
             font_size='16sp',
             color=(0.46, 0.46, 0.46, 1),
             size_hint_y=None,
-            height=dp(40)
+            height=dp(40),
+            font_name='NanumGothic'
         )
         
         # 남은 시간 표시 레이블
@@ -83,6 +87,7 @@ class NapTimerButton(BoxLayout):
             color=(0.13, 0.59, 0.95, 1),
             size_hint_y=None,
             height=dp(30)
+            font_name='NanumGothic'
         )
         
         self.action_button = Button(
@@ -90,6 +95,7 @@ class NapTimerButton(BoxLayout):
             background_color=(0.13, 0.59, 0.95, 1),
             size_hint_y=None,
             height=dp(50)
+            font_name='NanumGothic'
         )
         self.action_button.bind(on_press=self.toggle_timer)
         

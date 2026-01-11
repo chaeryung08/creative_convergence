@@ -52,6 +52,8 @@ class SleepModeScreen(BoxLayout):
             bold=True,
             halign='left',
             valign='middle'
+            color(0,0,0,1),
+            font_name='NanumGothic'
         )
         header_title.bind(size=header_title.setter('text_size'))
         
@@ -61,6 +63,7 @@ class SleepModeScreen(BoxLayout):
             color=(0.46, 0.46, 0.46, 1),
             halign='left',
             valign='middle'
+            font_name='NanumGothic'
         )
         mode_label.bind(size=mode_label.setter('text_size'))
         
@@ -71,6 +74,7 @@ class SleepModeScreen(BoxLayout):
             text='로그 보기',
             size_hint_x=0.3,
             background_color=(0.13, 0.59, 0.95, 1)
+            font_name='NanumGothic'
         )
         self.log_button.bind(on_press=self.toggle_logs)
         
