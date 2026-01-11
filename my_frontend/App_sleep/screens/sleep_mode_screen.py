@@ -22,7 +22,7 @@ from App_sleep.data.mock_data import (
     fetch_drowsiness_status,
     USE_MOCK_DATA
 )
-from my_frontend.App_sleep.utils.event_logger import event_logger
+from App_sleep.utils.event_logger import event_logger
 
 class SleepModeScreen(BoxLayout):
     """수면 모니터링 메인 화면"""
