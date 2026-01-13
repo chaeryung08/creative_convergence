@@ -1,3 +1,13 @@
+from kivy.core.text import LabelBase
+
+LabelBase.register(
+    name="NanumGothic",
+    fn_regular="C:/Windows/Fonts/NanumGothic.ttf"
+)
+
+print("✅ 한글 폰트 등록 완료")
+
+
 from kivy.app import App
 from App_sleep.screens.sleep_mode_screen import SleepModeScreen
 
