@@ -3,10 +3,6 @@ from kivy.app import App
 from kivy.core.text import LabelBase
 import os
 
-# 🔥 캐시 무시 옵션 추가
-if 'components.nap_timer_button' in sys.modules:
-    del sys.modules['components.nap_timer_button']
-
 from App_sleep.screens.sleep_mode_screen import SleepModeScreen
 
 # Windows 폰트 경로
