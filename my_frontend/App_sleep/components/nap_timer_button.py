@@ -1,397 +1,156 @@
-# components/nap_timer_button.py 맨 위에 추가
-print(" NAP TIMER BUTTON 리뉴얼ㅋㅋ")
-
-from kivy.uix.boxlayout import BoxLayout
-# 왜안뜨는지 확인
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.widget import Widget
-from kivy.uix.progressbar import ProgressBar
-from kivy.graphics import Color, RoundedRectangle, Line, Ellipse
-from kivy.metrics import dp
-from datetime import datetime, timedelta
 from kivy.clock import Clock
-import math
+from kivy.graphics import Color, RoundedRectangle
+from kivy.metrics import dp
+from datetime import datetime
 
-class CircularProgress(Widget):
-    """원형 프로그레스 바 (시계 애니메이션)"""
-    
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.progress = 0  # 0~1
-        self.size_hint = (None, None)
-        self.size = (dp(200), dp(200))
-        
-        with self.canvas:
-            # 배경 원 (회색)
-            Color(1, 1, 1, 0.3)
-            self.bg_circle = Line(
-                circle=(self.center_x, self.center_y, dp(90)),
-                width=dp(12)
-            )
-            
-            # 진행률 원 (흰색)
-            Color(1, 1, 1, 1)
-            self.progress_circle = Line(
-                circle=(self.center_x, self.center_y, dp(90), 0, 0),
-                width=dp(12)
-            )
-        
-        self.bind(pos=self.update_circle, size=self.update_circle)
-    
-    def update_circle(self, *args):
-        """원 위치 업데이트"""
-        self.bg_circle.circle = (self.center_x, self.center_y, dp(90))
-        angle = 360 * self.progress
-        self.progress_circle.circle = (self.center_x, self.center_y, dp(90), 0, angle)
-    
-    def set_progress(self, value):
-        """진행률 설정 (0~1)"""
-        self.progress = max(0, min(1, value))
-        self.update_circle()
-
+PRIMARY = (0.1, 0.4, 0.9, 1)
+LIGHT_BLUE = (0.9, 0.95, 1, 1)
+GRAY = (0.4, 0.4, 0.4, 1)
 
 class NapTimerButton(BoxLayout):
-    """낮잠 타이머 컴포넌트 - 완전 개선된 UI"""
-    
+    """30분 제한 낮잠 타이머"""
+
     def __init__(self, event_logger, **kwargs):
         super().__init__(**kwargs)
         self.event_logger = event_logger
+
         self.orientation = 'vertical'
         self.padding = dp(20)
         self.spacing = dp(16)
         self.size_hint_y = None
-        self.height = dp(520)
-        
-        # 타이머 상태
-        self.timer_active = False
+        self.height = dp(340)
+
+        # 상태
         self.selected_minutes = 10
         self.remaining_seconds = 0
-        self.total_seconds = 0
-        
-        # 하루 사용 시간 추적
-        self.today = datetime.now().date()
-        self.total_used_today = 0
+        self.timer_active = False
+        self.timer_event = None
+
         self.max_daily_seconds = 30 * 60
-        
-        # 타이머 및 알림
-        self.timer_clock = None
-        self.alarm_start_time = None
-        self.alarm_check_clock = None
-        
-        # 배경 (파란색 그라데이션)
+        self.used_today = 0
+        self.today = datetime.now().date()
+
+        # 배경 카드
         with self.canvas.before:
-            Color(0.2, 0.6, 0.86, 1)  # 밝은 파란색
-            self.bg_rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(20)])
-        
+            Color(1, 1, 1, 1)
+            self.bg = RoundedRectangle(radius=[dp(16)], pos=self.pos, size=self.size)
         self.bind(pos=self.update_bg, size=self.update_bg)
-        
-        # === 오늘 남은 시간 표시 ===
-        self.usage_label = Label(
-            text='',
-            font_size='16sp',
-            color=(1, 1, 1, 0.9),
-            size_hint_y=None,
-            height=dp(30),
-            bold=True
-        )
-        self.update_usage_label()
-        
-        # === 원형 프로그레스 + 타이머 디스플레이 ===
-        timer_container = BoxLayout(
-            orientation='vertical',
-            size_hint_y=None,
-            height=dp(220)
-        )
-        
-        # 원형 프로그레스 (시계)
-        self.circular_progress = CircularProgress()
-        
-        # 타이머 숫자 (원 중앙에 배치)
-        self.timer_display = Label(
-            text='10:00',
-            font_size='48sp',
-            bold=True,
-            color=(1, 1, 1, 1),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}
-        )
-        
-        timer_container.add_widget(self.circular_progress)
-        timer_container.add_widget(self.timer_display)
-        
-        # === 프리셋 버튼들 (5분, 10분, 15분, 20분, 30분) ===
-        preset_label = Label(
-            text='빠른 설정',
+
+        # 오늘 남은 시간
+        self.remaining_label = Label(
             font_size='14sp',
-            color=(1, 1, 1, 0.8),
+            color=GRAY,
             size_hint_y=None,
-            height=dp(25)
+            height=dp(24)
         )
-        
-        preset_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=dp(8),
+        self.add_widget(self.remaining_label)
+        self.update_remaining()
+
+        # 중앙 타이머
+        self.time_label = Label(
+            text='10:00',
+            font_size='56sp',
+            bold=True,
+            color=PRIMARY,
             size_hint_y=None,
-            height=dp(45)
+            height=dp(120)
         )
-        
-        presets = [5, 10, 15, 20, 30]
-        for minutes in presets:
-            btn = Button(
-                text=f'{minutes}분',
+        self.add_widget(self.time_label)
+
+        # 시간 버튼
+        btn_row = BoxLayout(spacing=dp(12), size_hint_y=None, height=dp(48))
+        for m in (1, 5, 10):
+            b = Button(
+                text=f'+{m}분',
                 background_normal='',
-                background_color=(1, 1, 1, 0.25),
-                color=(1, 1, 1, 1),
-                font_size='14sp',
-                bold=True
+                background_color=LIGHT_BLUE,
+                color=PRIMARY
             )
-            btn.bind(on_press=lambda x, m=minutes: self.set_preset(m))
-            preset_layout.add_widget(btn)
-        
-        # === 시간 미세 조정 버튼 (+1, +5, -1, -5) ===
-        adjust_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=dp(8),
-            size_hint_y=None,
-            height=dp(45)
-        )
-        
-        adjustments = [
-            (-5, '-5분'),
-            (-1, '-1분'),
-            (1, '+1분'),
-            (5, '+5분')
-        ]
-        
-        for minutes, text in adjustments:
-            btn = Button(
-                text=text,
-                background_normal='',
-                background_color=(1, 1, 1, 0.2),
-                color=(1, 1, 1, 1),
-                font_size='13sp',
-                bold=True
-            )
-            btn.bind(on_press=lambda x, m=minutes: self.adjust_time(m))
-            adjust_layout.add_widget(btn)
-        
-        # === 진행률 바 ===
-        self.progress_bar = ProgressBar(
-            max=100,
-            value=0,
-            size_hint_y=None,
-            height=dp(8)
-        )
-        
-        # === 시작/정지 버튼 ===
-        self.control_button = Button(
+            b.bind(on_press=lambda x, mm=m: self.add_time(mm))
+            btn_row.add_widget(b)
+        self.add_widget(btn_row)
+
+        # 시작 버튼
+        self.start_btn = Button(
             text='시작',
             background_normal='',
-            background_color=(1, 1, 1, 1),
-            color=(0.2, 0.6, 0.86, 1),
+            background_color=PRIMARY,
+            color=(1,1,1,1),
+            font_size='18sp',
             size_hint_y=None,
-            height=dp(60),
-            font_size='20sp',
-            bold=True
+            height=dp(56)
         )
-        self.control_button.bind(on_press=self.toggle_timer)
-        
-        # === 상태 메시지 ===
-        self.status_label = Label(
-            text='쪽잠으로 학습 효율을 높이세요 ☕',
-            font_size='14sp',
-            color=(1, 1, 1, 0.8),
-            size_hint_y=None,
-            height=dp(40)
-        )
-        
-        # 위젯 추가
-        self.add_widget(self.usage_label)
-        self.add_widget(timer_container)
-        self.add_widget(preset_label)
-        self.add_widget(preset_layout)
-        self.add_widget(adjust_layout)
-        self.add_widget(self.progress_bar)
-        self.add_widget(self.control_button)
-        self.add_widget(self.status_label)
-    
+        self.start_btn.bind(on_press=self.toggle)
+        self.add_widget(self.start_btn)
+
     def update_bg(self, *args):
-        self.bg_rect.pos = self.pos
-        self.bg_rect.size = self.size
-    
-    def set_preset(self, minutes):
-        """프리셋 버튼 클릭"""
-        if self.timer_active:
-            return
-        
-        # 남은 시간 확인
-        remaining_daily = (self.max_daily_seconds - self.total_used_today) // 60
-        if minutes > remaining_daily:
-            self.status_label.text = f'⚠️ 오늘은 {remaining_daily}분만 사용 가능합니다'
-            return
-        
-        self.selected_minutes = minutes
-        self.timer_display.text = f'{self.selected_minutes:02d}:00'
-        self.status_label.text = f'{minutes}분 타이머 설정 완료 ✓'
-    
-    def adjust_time(self, minutes):
-        """시간 미세 조정"""
-        if self.timer_active:
-            return
-        
-        new_minutes = max(1, min(30, self.selected_minutes + minutes))
-        
-        # 남은 시간 확인
-        remaining_daily = (self.max_daily_seconds - self.total_used_today) // 60
-        if new_minutes > remaining_daily:
-            self.status_label.text = f'⚠️ 오늘은 {remaining_daily}분만 사용 가능합니다'
-            return
-        
-        self.selected_minutes = new_minutes
-        self.timer_display.text = f'{self.selected_minutes:02d}:00'
-    
-    def update_usage_label(self):
-        """남은 사용 가능 시간 업데이트"""
-        # 날짜가 바뀌면 초기화
+        self.bg.pos = self.pos
+        self.bg.size = self.size
+
+    def update_remaining(self):
         if datetime.now().date() != self.today:
+            self.used_today = 0
             self.today = datetime.now().date()
-            self.total_used_today = 0
-        
-        remaining = self.max_daily_seconds - self.total_used_today
-        mins = remaining // 60
-        secs = remaining % 60
-        
-        if remaining <= 0:
-            self.usage_label.text = '⏰ 오늘 사용 시간 소진'
-        else:
-            self.usage_label.text = f'오늘 남은 시간: {mins}분 {secs:02d}초'
-    
-    def toggle_timer(self, instance):
-        """타이머 토글"""
-        if not self.timer_active:
-            self.start_timer()
-        else:
-            self.cancel_timer()
-    
-    def start_timer(self):
-        """타이머 시작"""
-        remaining = self.max_daily_seconds - self.total_used_today
-        if remaining <= 0:
-            self.status_label.text = '⚠️ 오늘 사용 시간을 초과했습니다'
+
+        remain = max(0, self.max_daily_seconds - self.used_today)
+        m, s = divmod(remain, 60)
+        self.remaining_label.text = f'오늘 남은 시간: {m}분 {s:02d}초'
+
+    def add_time(self, minutes):
+        if self.timer_active:
             return
-        
-        requested_seconds = self.selected_minutes * 60
-        if requested_seconds > remaining:
-            actual_seconds = remaining
+        self.selected_minutes = min(30, self.selected_minutes + minutes)
+        self.time_label.text = f'{self.selected_minutes:02d}:00'
+
+    def toggle(self, instance):
+        if self.timer_active:
+            self.stop()
         else:
-            actual_seconds = requested_seconds
-        
+            self.start()
+
+    def start(self):
+        remain = self.max_daily_seconds - self.used_today
+        if remain <= 0:
+            self.remaining_label.text = '오늘 사용 시간 초과'
+            return
+
+        self.remaining_seconds = min(self.selected_minutes * 60, remain)
         self.timer_active = True
-        self.remaining_seconds = actual_seconds
-        self.total_seconds = actual_seconds
-        
-        # UI 변경
-        self.control_button.text = '정지'
-        self.control_button.background_color = (0.96, 0.26, 0.21, 1)
-        self.control_button.color = (1, 1, 1, 1)
-        self.status_label.text = '⏱️ 타이머 실행 중...'
-        
-        # 타이머 시작
-        self.timer_clock = Clock.schedule_interval(self.update_timer, 1)
-        
-        self.event_logger.log_nap_timer_start(actual_seconds)
-    
-    def update_timer(self, dt):
-        """타이머 업데이트 (원형 애니메이션 포함)"""
+        self.start_btn.text = '정지'
+        self.start_btn.background_color = (0.9, 0.2, 0.2, 1)
+
+        self.timer_event = Clock.schedule_interval(self.tick, 1)
+        self.event_logger.log_nap_timer_start(self.remaining_seconds)
+
+    def tick(self, dt):
         self.remaining_seconds -= 1
-        
         if self.remaining_seconds <= 0:
-            self.timer_complete()
-        else:
-            # 시간 표시
-            mins = self.remaining_seconds // 60
-            secs = self.remaining_seconds % 60
-            self.timer_display.text = f'{mins:02d}:{secs:02d}'
-            
-            # 진행률 업데이트
-            progress = 1 - (self.remaining_seconds / self.total_seconds)
-            self.progress_bar.value = progress * 100
-            self.circular_progress.set_progress(progress)
-            
-            self.update_usage_label()
-    
-    def timer_complete(self):
-        """타이머 완료 - 알람"""
-        if self.timer_clock:
-            self.timer_clock.cancel()
-        
-        # 사용 시간 기록
-        used_time = self.selected_minutes * 60
-        self.total_used_today += used_time
-        self.update_usage_label()
-        
-        # 알람 시작
-        self.timer_display.text = '00:00'
-        self.status_label.text = '🔔 알람! 일어나세요!'
-        self.control_button.text = '알람 끄기'
-        self.control_button.background_color = (1, 0.6, 0, 1)
-        self.progress_bar.value = 100
-        self.circular_progress.set_progress(1)
-        
-        self.alarm_start_time = datetime.now()
-        self.alarm_check_clock = Clock.schedule_interval(self.check_alarm_recognition, 1)
-        
+            self.finish()
+            return
+
+        m, s = divmod(self.remaining_seconds, 60)
+        self.time_label.text = f'{m:02d}:{s:02d}'
+
+    def finish(self):
+        if self.timer_event:
+            self.timer_event.cancel()
+
+        self.used_today += self.selected_minutes * 60
+        self.timer_active = False
+        self.start_btn.text = '시작'
+        self.start_btn.background_color = PRIMARY
+        self.time_label.text = '00:00'
+        self.update_remaining()
         self.event_logger.log_nap_timer_complete()
-    
-    def check_alarm_recognition(self, dt):
-        """1분 이상 인식 못하면 깊은 수면으로 판단"""
-        if self.alarm_start_time:
-            elapsed = (datetime.now() - self.alarm_start_time).total_seconds()
-            
-            if elapsed >= 60:
-                if self.alarm_check_clock:
-                    self.alarm_check_clock.cancel()
-                
-                self.event_logger.log_deep_sleep_detected()
-                self.force_non_sleep_mode()
-    
-    def force_non_sleep_mode(self):
-        """깊은 수면 감지 - 비수면 모드 전환"""
+
+    def stop(self):
+        if self.timer_event:
+            self.timer_event.cancel()
+
         self.timer_active = False
-        self.alarm_start_time = None
-        
-        self.status_label.text = '😴 깊은 수면 감지 - 비수면 모드로 전환'
-        self.control_button.text = '시작'
-        self.control_button.background_color = (1, 1, 1, 1)
-        self.control_button.color = (0.2, 0.6, 0.86, 1)
-        self.timer_display.text = f'{self.selected_minutes:02d}:00'
-        self.progress_bar.value = 0
-        self.circular_progress.set_progress(0)
-        
-        print("⚠️ 깊은 수면 감지! 비수면 모드로 전환")
-    
-    def cancel_timer(self):
-        """타이머 취소"""
-        if self.timer_clock:
-            self.timer_clock.cancel()
-            # 사용한 시간 기록
-            elapsed = self.total_seconds - self.remaining_seconds
-            self.total_used_today += elapsed
-        
-        if self.alarm_check_clock:
-            self.alarm_check_clock.cancel()
-        
-        self.timer_active = False
-        self.alarm_start_time = None
-        
-        self.timer_display.text = f'{self.selected_minutes:02d}:00'
-        self.control_button.text = '시작'
-        self.control_button.background_color = (1, 1, 1, 1)
-        self.control_button.color = (0.2, 0.6, 0.86, 1)
-        self.status_label.text = '쪽잠으로 학습 효율을 높이세요 ☕'
-        self.progress_bar.value = 0
-        self.circular_progress.set_progress(0)
-        
-        self.update_usage_label()
-        self.event_logger.log_nap_timer_cancel()
+        self.start_btn.text = '시작'
+        self.start_btn.background_color = PRIMARY
+        self.time_label.text = f'{self.selected_minutes:02d}:00'

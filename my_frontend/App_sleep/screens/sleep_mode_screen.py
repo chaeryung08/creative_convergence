@@ -100,7 +100,7 @@ class SleepModeScreen(BoxLayout):
         
         self.content_layout.add_widget(self.status_display)
         self.content_layout.add_widget(self.timer_button)
-        self.content_layout.add_widget(self.nap_timer_button)
+        
         
         scroll_view.add_widget(self.content_layout)
         
