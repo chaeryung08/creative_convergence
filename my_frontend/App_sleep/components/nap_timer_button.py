@@ -1,3 +1,8 @@
+# components/nap_timer_button.py 맨 위에 추가
+print(" NAP TIMER BUTTON 리뉴얼ㅋㅋ")
+
+from kivy.uix.boxlayout import BoxLayout
+# 왜안뜨는지 확인
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
