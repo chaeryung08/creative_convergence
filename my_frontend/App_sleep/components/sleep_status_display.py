@@ -29,7 +29,7 @@ class SleepStatusDisplay(BoxLayout):
             font_size='64sp',
             size_hint_y=None,
             height=dp(80),
-            font_name='NanumGothic'
+            font_name='NanumBarunPen'
         )
         
         self.title_label = Label(
@@ -38,7 +38,7 @@ class SleepStatusDisplay(BoxLayout):
             color=(0.46, 0.46, 0.46, 1),
             size_hint_y=None,
             height=dp(30),
-            font_name='NanumGothic'
+            font_name='NanumBarunPen'
         )
         
         self.status_label = Label(
@@ -47,7 +47,7 @@ class SleepStatusDisplay(BoxLayout):
             bold=True,
             size_hint_y=None,
             height=dp(50),
-            font_name='NanumGothic'
+            font_name='NanumBarunPen'
         )
         
         self.progress_bar = ProgressBar(
@@ -62,7 +62,7 @@ class SleepStatusDisplay(BoxLayout):
             font_size='20sp',
             size_hint_y=None,
             height=dp(40),
-            font_name='NanumGothic'
+            font_name='NanumBarunPen'
         )
         
         self.add_widget(self.emoji_label)

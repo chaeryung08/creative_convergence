@@ -27,7 +27,7 @@ class SleepModeScreen(BoxLayout):
             bold=True,
             size_hint_y=None,
             height=dp(48),
-            font_name='NanumGothic'
+            font_name='NanumBarunPen'
         )
 
         subtitle = Label(
@@ -36,7 +36,7 @@ class SleepModeScreen(BoxLayout):
             color=(0.45, 0.45, 0.45, 1),
             size_hint_y=None,
             height=dp(28),
-            font_name='NanumGothic'
+            font_name='NanumBarunPen'
         )
 
         # 낮잠 타이머

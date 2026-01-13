@@ -1,10 +1,25 @@
 from kivy.core.text import LabelBase
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 LabelBase.register(
-    name="NanumGothic",
-    fn_regular="C:/Windows/Fonts/NanumGothic.ttf",
-    fn_bold="C:/Windows/Fonts/NanumGothicBold.ttf",
+    name="NanumBarunPen",
+    fn_regular=os.path.join(
+        BASE_DIR,
+        "App_sleep",
+        "fonts",
+        "NanumBarunpenR.ttf"
+    ),
+    fn_bold=os.path.join(
+        BASE_DIR,
+        "App_sleep",
+        "fonts",
+        "NanumBarunpenB.ttf"
+    ) if os.path.exists(os.path.join(BASE_DIR, "App_sleep", "fonts", "NanumBarunpenB.ttf")) else None
 )
+
+print("✅ Nanum Barun Pen 폰트 로드 성공")
 
 print("✅ 한글 폰트 등록 완료")
 
