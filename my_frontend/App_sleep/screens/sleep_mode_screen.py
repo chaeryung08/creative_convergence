@@ -3,7 +3,7 @@ from kivy.uix.label import Label
 from kivy.graphics import Color, RoundedRectangle
 from kivy.metrics import dp
 
-from App_sleep.components.nap_timer_button import NapTimerButton
+from App_sleep.components.timer_button import NapTimerButton
 
 
 class SleepModeScreen(BoxLayout):
