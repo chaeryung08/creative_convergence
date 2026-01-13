@@ -4,146 +4,157 @@ from kivy.uix.button import Button
 from kivy.clock import Clock
 from kivy.graphics import Color, RoundedRectangle
 from kivy.metrics import dp
+from datetime import datetime
+
+PRIMARY = (0.1, 0.4, 0.9, 1)
+LIGHT_BLUE = (0.9, 0.95, 1, 1)
+GRAY = (0.4, 0.4, 0.4, 1)
 
 class TimerButton(BoxLayout):
-    """타이머 버튼 컴포넌트"""
-    
+    """30분 제한 낮잠 타이머 (Nap Timer)"""
+
     def __init__(self, event_logger, **kwargs):
         super().__init__(**kwargs)
         self.event_logger = event_logger
+
         self.orientation = 'vertical'
-        self.padding = dp(16)
-        self.spacing = dp(12)
+        self.padding = dp(20)
+        self.spacing = dp(16)
         self.size_hint_y = None
-        self.height = dp(250)
-        
-        # 타이머 상태
-        self.is_running = False
-        self.time_left = 20 * 60  # 20분 (초 단위)
+        self.height = dp(340)
+
+        # 상태
+        self.selected_minutes = 10
+        self.remaining_seconds = 0
+        self.timer_active = False
         self.timer_event = None
-        
-        # 배경
+
+        self.max_daily_seconds = 30 * 60
+        self.used_today = 0
+        self.today = datetime.now().date()
+
+        # 배경 카드
         with self.canvas.before:
             Color(1, 1, 1, 1)
-            self.bg_rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(12)])
-        
+            self.bg = RoundedRectangle(radius=[dp(16)], pos=self.pos, size=self.size)
         self.bind(pos=self.update_bg, size=self.update_bg)
-        
-        # UI 요소들
-        self.title_label = Label(
-            text='휴식 타이머',
-            font_size='20sp',
-            bold=True,
+
+        # 오늘 남은 시간
+        self.remaining_label = Label(
+            font_size='14sp',
+            color=GRAY,
             size_hint_y=None,
-            height=dp(40),
+            height=dp(24),
             font_name='NanumGothic'
         )
-        
-        self.timer_display = Label(
-            text=self.format_time(self.time_left),
+        self.add_widget(self.remaining_label)
+        self.update_remaining()
+
+        # 중앙 타이머
+        self.time_label = Label(
+            text='10:00',
             font_size='56sp',
             bold=True,
+            color=PRIMARY,
             size_hint_y=None,
-            height=dp(80),
+            height=dp(120),
             font_name='NanumGothic'
         )
-        
-        # 버튼 레이아웃
-        button_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=dp(8),
-            size_hint_y=None,
-            height=dp(50)
-        )
-        
-        self.start_button = Button(
+        self.add_widget(self.time_label)
+
+        # 시간 버튼
+        btn_row = BoxLayout(spacing=dp(12), size_hint_y=None, height=dp(48))
+        for m in (1, 5, 10):
+            b = Button(
+                text=f'+{m}분',
+                background_normal='',
+                background_color=LIGHT_BLUE,
+                color=PRIMARY,
+                font_name='NanumGothic'
+            )
+            b.bind(on_press=lambda x, mm=m: self.add_time(mm))
+            btn_row.add_widget(b)
+        self.add_widget(btn_row)
+
+        # 시작 버튼
+        self.start_btn = Button(
             text='시작',
-            background_color=(0.3, 0.69, 0.31, 1),
-            size_hint_x=0.5,
-            font_name='NanumGothic'
-        )
-        self.start_button.bind(on_press=self.on_start)
-        
-        self.reset_button = Button(
-            text='리셋',
-            background_color=(0.46, 0.46, 0.46, 1),
-            size_hint_x=0.5,
-            font_name='NanumGothic'
-        )
-        self.reset_button.bind(on_press=self.on_reset)
-        
-        button_layout.add_widget(self.start_button)
-        button_layout.add_widget(self.reset_button)
-        
-        self.subtitle_label = Label(
-            text='20분 휴식 권장',
-            font_size='14sp',
-            color=(0.46, 0.46, 0.46, 1),
+            background_normal='',
+            background_color=PRIMARY,
+            color=(1,1,1,1),
+            font_size='18sp',
             size_hint_y=None,
-            height=dp(30),
+            height=dp(56),
             font_name='NanumGothic'
         )
-        
-        self.add_widget(self.title_label)
-        self.add_widget(self.timer_display)
-        self.add_widget(button_layout)
-        self.add_widget(self.subtitle_label)
-    
+        self.start_btn.bind(on_press=self.toggle)
+        self.add_widget(self.start_btn)
+
     def update_bg(self, *args):
-        self.bg_rect.pos = self.pos
-        self.bg_rect.size = self.size
-    
-    def format_time(self, seconds: int) -> str:
-        """시간 포맷팅"""
-        mins = seconds // 60
-        secs = seconds % 60
-        return f"{mins:02d}:{secs:02d}"
-    
-    def on_start(self, instance):
-        """시작/정지 버튼"""
-        if not self.is_running:
-            self.is_running = True
-            self.start_button.text = '정지'
-            self.start_button.background_color = (0.96, 0.26, 0.21, 1)
-            self.timer_event = Clock.schedule_interval(self.update_timer, 1.0)
-            self.event_logger.log_timer_start(self.time_left)
-            self.subtitle_label.text = '타이머 실행 중...'
+        self.bg.pos = self.pos
+        self.bg.size = self.size
+
+    def update_remaining(self):
+        if datetime.now().date() != self.today:
+            self.used_today = 0
+            self.today = datetime.now().date()
+
+        remain = max(0, self.max_daily_seconds - self.used_today)
+        m, s = divmod(remain, 60)
+        self.remaining_label.text = f'오늘 남은 시간: {m}분 {s:02d}초'
+
+    def add_time(self, minutes):
+        if self.timer_active:
+            return
+        self.selected_minutes = min(30, self.selected_minutes + minutes)
+        self.time_label.text = f'{self.selected_minutes:02d}:00'
+
+    def toggle(self, instance):
+        if self.timer_active:
+            self.stop()
         else:
-            self.is_running = False
-            self.start_button.text = '시작'
-            self.start_button.background_color = (0.3, 0.69, 0.31, 1)
-            if self.timer_event:
-                self.timer_event.cancel()
-            self.event_logger.log_timer_stop(self.time_left)
-            self.subtitle_label.text = '20분 휴식 권장'
-    
-    def on_reset(self, instance):
-        """리셋 버튼"""
-        self.is_running = False
-        self.time_left = 20 * 60
-        self.timer_display.text = self.format_time(self.time_left)
-        self.start_button.text = '시작'
-        self.start_button.background_color = (0.3, 0.69, 0.31, 1)
+            self.start()
+
+    def start(self):
+        remain = self.max_daily_seconds - self.used_today
+        if remain <= 0:
+            self.remaining_label.text = '오늘 사용 시간 초과'
+            return
+
+        self.remaining_seconds = min(self.selected_minutes * 60, remain)
+        self.timer_active = True
+        self.start_btn.text = '정지'
+        self.start_btn.background_color = (0.9, 0.2, 0.2, 1)
+
+        self.timer_event = Clock.schedule_interval(self.tick, 1)
+        self.event_logger.log_nap_timer_start(self.remaining_seconds)
+
+    def tick(self, dt):
+        self.remaining_seconds -= 1
+        if self.remaining_seconds <= 0:
+            self.finish()
+            return
+
+        m, s = divmod(self.remaining_seconds, 60)
+        self.time_label.text = f'{m:02d}:{s:02d}'
+
+    def finish(self):
         if self.timer_event:
             self.timer_event.cancel()
-        self.event_logger.log('TIMER_RESET', {})
-        self.subtitle_label.text = '20분 휴식 권장'
-    
-    def update_timer(self, dt):
-        """타이머 업데이트"""
-        if self.time_left > 0:
-            self.time_left -= 1
-            self.timer_display.text = self.format_time(self.time_left)
-        else:
-            self.on_timer_complete()
-    
-    def on_timer_complete(self):
-        """타이머 완료"""
-        self.is_running = False
-        self.start_button.text = '시작'
-        self.start_button.background_color = (0.3, 0.69, 0.31, 1)
+
+        self.used_today += self.selected_minutes * 60
+        self.timer_active = False
+        self.start_btn.text = '시작'
+        self.start_btn.background_color = PRIMARY
+        self.time_label.text = '00:00'
+        self.update_remaining()
+        self.event_logger.log_nap_timer_complete()
+
+    def stop(self):
         if self.timer_event:
             self.timer_event.cancel()
-        self.event_logger.log('TIMER_COMPLETE', {'duration': 20 * 60})
-        print("타이머가 종료되었습니다!")
-        self.subtitle_label.text = '타이머 종료!'
+
+        self.timer_active = False
+        self.start_btn.text = '시작'
+        self.start_btn.background_color = PRIMARY
+        self.time_label.text = f'{self.selected_minutes:02d}:00'

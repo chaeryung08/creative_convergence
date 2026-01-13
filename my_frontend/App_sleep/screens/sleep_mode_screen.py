@@ -1,136 +1,160 @@
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.clock import Clock
+from kivy.graphics import Color, RoundedRectangle
 from kivy.metrics import dp
 from datetime import datetime
-import random
 
-from App_sleep.components.sleep_status_display import SleepStatusDisplay
-from App_sleep.components.timer_button import TimerButton
-from App_sleep.components.nap_timer_button import NapTimerButton
-from App_sleep.data.mock_data import (
-    get_drowsiness_level,
-    fetch_drowsiness_status,
-    USE_MOCK_DATA
-)
-from App_sleep.utils.event_logger import event_logger
+PRIMARY = (0.1, 0.4, 0.9, 1)
+LIGHT_BLUE = (0.9, 0.95, 1, 1)
+GRAY = (0.4, 0.4, 0.4, 1)
 
+class TimerButton(BoxLayout):
+    """30분 제한 낮잠 타이머 (Nap Timer)"""
 
-class SleepModeScreen(BoxLayout):
-    """수면 모니터링 메인 화면"""
-
-    def __init__(self, **kwargs):
+    def __init__(self, event_logger, **kwargs):
         super().__init__(**kwargs)
+        self.event_logger = event_logger
+
         self.orientation = 'vertical'
+        self.padding = dp(20)
+        self.spacing = dp(16)
+        self.size_hint_y = None
+        self.height = dp(340)
 
-        # 데이터
-        self.sleep_data = fetch_drowsiness_status()
+        # 상태
+        self.selected_minutes = 10
+        self.remaining_seconds = 0
+        self.timer_active = False
+        self.timer_event = None
 
-        # ================= 헤더 =================
-        header = BoxLayout(
-            orientation='horizontal',
+        self.max_daily_seconds = 30 * 60
+        self.used_today = 0
+        self.today = datetime.now().date()
+
+        # 배경 카드
+        with self.canvas.before:
+            Color(1, 1, 1, 1)
+            self.bg = RoundedRectangle(radius=[dp(16)], pos=self.pos, size=self.size)
+        self.bind(pos=self.update_bg, size=self.update_bg)
+
+        # 오늘 남은 시간
+        self.remaining_label = Label(
+            font_size='14sp',
+            color=GRAY,
             size_hint_y=None,
-            height=dp(70),
-            padding=dp(16),
-            spacing=dp(16)
+            height=dp(24),
+            font_name='NanumGothic'
         )
+        self.add_widget(self.remaining_label)
+        self.update_remaining()
 
-        title_box = BoxLayout(orientation='vertical', size_hint_x=0.7)
-
-        header_title = Label(
-            text='수면 모니터링',
-            font_size='24sp',
+        # 중앙 타이머
+        self.time_label = Label(
+            text='10:00',
+            font_size='56sp',
             bold=True,
-            color=(0, 0, 0, 1),
+            color=PRIMARY,
+            size_hint_y=None,
+            height=dp(120),
             font_name='NanumGothic'
         )
+        self.add_widget(self.time_label)
 
-        mode_label = Label(
-            text='🔵 Mock 데이터 모드' if USE_MOCK_DATA else '🟢 실시간 연동 모드',
-            font_size='12sp',
-            color=(0.46, 0.46, 0.46, 1),
-            font_name='NanumGothic'
-        )
-
-        title_box.add_widget(header_title)
-        title_box.add_widget(mode_label)
-
-        self.log_button = Button(
-            text='로그 보기',
-            size_hint_x=0.3,
-            background_color=(0.13, 0.59, 0.95, 1),
-            font_name='NanumGothic'
-        )
-        self.log_button.bind(on_press=self.toggle_logs)
-
-        header.add_widget(title_box)
-        header.add_widget(self.log_button)
-
-        # ================= 스크롤 영역 =================
-        scroll_view = ScrollView()
-
-        self.content_layout = BoxLayout(
-            orientation='vertical',
-            spacing=dp(16),
-            padding=dp(16),
-            size_hint_y=None
-        )
-        self.content_layout.bind(
-            minimum_height=self.content_layout.setter('height')
-        )
-
-        # ================= 컴포넌트 =================
-        self.status_display = SleepStatusDisplay()
-        self.timer_button = TimerButton(event_logger)
-        self.nap_timer_button = NapTimerButton(event_logger)
-
-        self.content_layout.add_widget(self.status_display)
-        self.content_layout.add_widget(self.timer_button)
-        self.content_layout.add_widget(self.nap_timer_button)  # 🔥 이게 핵심
-
-        scroll_view.add_widget(self.content_layout)
-
-        self.add_widget(header)
-        self.add_widget(scroll_view)
-
-        # 로그
-        event_logger.log_screen_enter('SleepModeScreen')
-
-        Clock.schedule_interval(self.update_data, 3.0)
-        self.update_status()
-
-    def update_data(self, dt):
-        old_level = get_drowsiness_level(
-            self.sleep_data['drowsiness_level']
-        )['level']
-
-        if USE_MOCK_DATA:
-            self.sleep_data['drowsiness_level'] = random.randint(0, 100)
-            self.sleep_data['last_update'] = datetime.now().isoformat()
-        else:
-            self.sleep_data = fetch_drowsiness_status()
-
-        new_level = get_drowsiness_level(
-            self.sleep_data['drowsiness_level']
-        )['level']
-
-        if old_level != new_level:
-            event_logger.log_drowsiness_change(
-                old_level,
-                new_level,
-                self.sleep_data['drowsiness_level']
+        # 시간 버튼
+        btn_row = BoxLayout(spacing=dp(12), size_hint_y=None, height=dp(48))
+        for m in (1, 5, 10):
+            b = Button(
+                text=f'+{m}분',
+                background_normal='',
+                background_color=LIGHT_BLUE,
+                color=PRIMARY,
+                font_name='NanumGothic'
             )
+            b.bind(on_press=lambda x, mm=m: self.add_time(mm))
+            btn_row.add_widget(b)
+        self.add_widget(btn_row)
 
-        self.update_status()
+        # 시작 버튼
+        self.start_btn = Button(
+            text='시작',
+            background_normal='',
+            background_color=PRIMARY,
+            color=(1,1,1,1),
+            font_size='18sp',
+            size_hint_y=None,
+            height=dp(56),
+            font_name='NanumGothic'
+        )
+        self.start_btn.bind(on_press=self.toggle)
+        self.add_widget(self.start_btn)
 
-    def update_status(self):
-        score = self.sleep_data['drowsiness_level']
-        status_info = get_drowsiness_level(score)
-        self.status_display.update_status(score, status_info)
+    def update_bg(self, *args):
+        self.bg.pos = self.pos
+        self.bg.size = self.size
 
-    def toggle_logs(self, instance):
-        print("\n최근 이벤트 로그")
-        for log in event_logger.get_all_logs()[:10]:
-            print(log)
+    def update_remaining(self):
+        if datetime.now().date() != self.today:
+            self.used_today = 0
+            self.today = datetime.now().date()
+
+        remain = max(0, self.max_daily_seconds - self.used_today)
+        m, s = divmod(remain, 60)
+        self.remaining_label.text = f'오늘 남은 시간: {m}분 {s:02d}초'
+
+    def add_time(self, minutes):
+        if self.timer_active:
+            return
+        self.selected_minutes = min(30, self.selected_minutes + minutes)
+        self.time_label.text = f'{self.selected_minutes:02d}:00'
+
+    def toggle(self, instance):
+        if self.timer_active:
+            self.stop()
+        else:
+            self.start()
+
+    def start(self):
+        remain = self.max_daily_seconds - self.used_today
+        if remain <= 0:
+            self.remaining_label.text = '오늘 사용 시간 초과'
+            return
+
+        self.remaining_seconds = min(self.selected_minutes * 60, remain)
+        self.timer_active = True
+        self.start_btn.text = '정지'
+        self.start_btn.background_color = (0.9, 0.2, 0.2, 1)
+
+        self.timer_event = Clock.schedule_interval(self.tick, 1)
+        self.event_logger.log_nap_timer_start(self.remaining_seconds)
+
+    def tick(self, dt):
+        self.remaining_seconds -= 1
+        if self.remaining_seconds <= 0:
+            self.finish()
+            return
+
+        m, s = divmod(self.remaining_seconds, 60)
+        self.time_label.text = f'{m:02d}:{s:02d}'
+
+    def finish(self):
+        if self.timer_event:
+            self.timer_event.cancel()
+
+        self.used_today += self.selected_minutes * 60
+        self.timer_active = False
+        self.start_btn.text = '시작'
+        self.start_btn.background_color = PRIMARY
+        self.time_label.text = '00:00'
+        self.update_remaining()
+        self.event_logger.log_nap_timer_complete()
+
+    def stop(self):
+        if self.timer_event:
+            self.timer_event.cancel()
+
+        self.timer_active = False
+        self.start_btn.text = '시작'
+        self.start_btn.background_color = PRIMARY
+        self.time_label.text = f'{self.selected_minutes:02d}:00'
