@@ -2,7 +2,8 @@ from kivy.core.text import LabelBase
 
 LabelBase.register(
     name="NanumGothic",
-    fn_regular="C:/Windows/Fonts/NanumGothic.ttf"
+    fn_regular="C:/Windows/Fonts/NanumGothic.ttf",
+    fn_bold="C:/Windows/Fonts/NanumGothicBold.ttf",
 )
 
 print("✅ 한글 폰트 등록 완료")
