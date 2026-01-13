@@ -1,3 +1,7 @@
+import App_sleep.components.nap_timer_button as ntb
+print("NAP TIMER FILE PATH =", ntb.__file__)
+
+
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
