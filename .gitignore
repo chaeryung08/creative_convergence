@@ -1,0 +1,18 @@
+# 가상환경
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+
+# OpenCV / 로그
+*.mp4
+*.avi
+*.log
+
+# MediaPipe cache
+*.pb
